@@ -1,0 +1,66 @@
+resources:
+- name: code
+  type: git
+  icon: github-circle
+  source:
+    uri: https://github.com/TeamWAW/CloudNative.git
+- name: storage
+  type: s3
+  source:
+    versioned_file: samplerest-0.0.1-SNAPSHOT.war
+    region_name: us-east-2
+    access_key_id: 
+    secret_access_key: 
+    bucket: samplewebapp-builds
+jobs:
+- name: Build
+  plan:
+  - get: code
+    trigger: true
+  - task: compile
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: maven
+      inputs:
+      - name: code
+      outputs:
+      - name: build
+      caches:
+      - path: code/.m2
+      run:
+        path: sh
+        args:
+        - -c
+        - |-
+          mvn -f code/pom.xml package -Dmaven.repo.local=code/.m2
+          cp code/target/samplerest-0.0.1-SNAPSHOT.war build/samplerest-0.0.1-SNAPSHOT.war
+  - put: storage
+    params:
+      file: build/samplerest-0.0.1-SNAPSHOT.war
+      name: samplerest-0.0.1-SNAPSHOT.war
+- plan:
+  - get: storage
+    passed:
+    - Build
+    trigger: true
+  - task: setenv
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: joydsilva/soapuiwebapp
+          tag: latest
+      inputs:
+      - name: storage
+      outputs:
+      - name: testresults
+      run:
+        path: sh
+        args:
+         - /opt/bin/testcasecheck.sh
+        
+  name: TEST

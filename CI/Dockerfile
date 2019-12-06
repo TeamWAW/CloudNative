@@ -1,8 +1,12 @@
-FROM java:openjdk-8-jdk
+FROM tomcat:jdk8
+
 ENV   SOAPUI_VERSION  5.5.0
 COPY testcasecheck.sh /opt/bin/testcasecheck.sh
 COPY samplerest.xml /opt/samplerest.xml
 
 RUN mkdir -p /opt &&\curl  http://s3.amazonaws.com/downloads.eviware/soapuios/${SOAPUI_VERSION}/SoapUI-${SOAPUI_VERSION}-linux-bin.tar.gz |\gunzip -c - | tar -xf - -C /opt && \ln -s /opt/SoapUI-${SOAPUI_VERSION} /opt/SoapUI
+RUN chmod +x /opt/bin/testcasecheck.sh
 
-#CMD ["/opt/bin/testcasecheck.sh"]
+COPY tomcat-users.xml $CATALINA_HOME/conf
+COPY context.xml $CATALINA_HOME/webapps/manager/META-INF 
+ 
