@@ -1,1 +1,1 @@
-# Sample project with Concourse CI/CD pipeline which builds and run SOAPUI testcases 
+# Sample project with Concourse CI/CD pipeline which builds the spring based REST application and run SOAPUI testcases 
